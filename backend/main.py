@@ -134,6 +134,12 @@ app.include_router(api_router, prefix="/api", tags=["API"])
 app.include_router(ws_router, tags=["WebSocket"])
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint (convenience, also available at /api/health)"""
+    return {"status": "healthy", "service": "Anaya Watchtower"}
+
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -162,6 +168,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8080,
+        port=8000,
         reload=settings.ENVIRONMENT == "development"
     )

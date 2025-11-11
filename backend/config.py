@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     NEON_DATA_API_URL: Optional[str] = None
     NEON_API_KEY: Optional[str] = None
     
+    # Stack Auth Configuration
+    STACK_PROJECT_ID: Optional[str] = None
+    STACK_PUBLISHABLE_CLIENT_KEY: Optional[str] = None
+    STACK_SECRET_SERVER_KEY: Optional[str] = None
+    STACK_JWKS_URL: Optional[str] = None
+    
     # Redis
     REDIS_URL: str = "redis://redis:6379/0"
     REDIS_HOST: str = "redis"

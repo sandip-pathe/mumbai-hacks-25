@@ -18,12 +18,10 @@ services:
       dockerfile: Dockerfile
     container_name: anaya-backend
     ports:
-      - "8080:8080"
+      - "8000:8000"
     depends_on:
       redis:
         condition: service_healthy
-    env_file:
-      - .env
     environment:
       # Pass all env vars from .env
       - DATABASE_URL=${DATABASE_URL}
@@ -47,7 +45,7 @@ services:
       - LANGGRAPH_CHECKPOINT_ENABLED=${LANGGRAPH_CHECKPOINT_ENABLED:-true}
     volumes:
       - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 networks:
   default:

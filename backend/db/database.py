@@ -20,11 +20,15 @@ AsyncSessionLocal: Optional[async_sessionmaker] = None
 if settings.DATABASE_URL:
     # For Neon, we need to configure SSL separately
     connect_args = {}
-    if 'neon.tech' in settings.DATABASE_URL or 'ssl=true' in settings.DATABASE_URL:
-        connect_args = {"ssl": True}
+    if 'neon.tech' in settings.DATABASE_URL or 'sslmode=require' in settings.DATABASE_URL:
+        connect_args = {"ssl": "require"}
     
-    # Remove ssl parameter from URL if present
+    # Remove ssl/sslmode parameters from URL if present and ensure asyncpg driver
     clean_url = settings.DATABASE_URL.replace('?ssl=true', '').replace('&ssl=true', '')
+    clean_url = clean_url.replace('?sslmode=require', '').replace('&sslmode=require', '')
+    # Ensure we're using asyncpg driver for async SQLAlchemy
+    if clean_url.startswith('postgresql://'):
+        clean_url = clean_url.replace('postgresql://', 'postgresql+asyncpg://', 1)
     
     engine = create_async_engine(
         clean_url,
