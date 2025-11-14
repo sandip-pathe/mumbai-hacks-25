@@ -9,6 +9,7 @@ from sqlalchemy import select, desc
 from db.database import get_db
 from db.models import RBICircular, ComplianceScore, PolicyDiff, Alert, AgentLog
 from agents.advisory import AdvisoryAgent
+from agents.agent_manager import agent_manager
 from pydantic import BaseModel
 from typing import List, Optional
 import logging
@@ -263,4 +264,41 @@ async def get_agent_logs(
         
     except Exception as e:
         logger.error(f"❌ Failed to get logs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/agents/status")
+async def get_agents_status():
+    """Get status of all Anaya agents"""
+    try:
+        return agent_manager.get_status()
+    except Exception as e:
+        logger.error(f"❌ Failed to get agent status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/agents/{agent_name}/trigger")
+async def trigger_agent(agent_name: str):
+    """Manually trigger a specific agent
+    
+    Available agents:
+    - radar (Anaya Radar): Check RBI website for new circulars
+    - score (Anaya Score): Calculate compliance score
+    - sentinel (Anaya Sentinel): Run transaction monitoring
+    """
+    try:
+        valid_agents = ['radar', 'score', 'sentinel']
+        if agent_name not in valid_agents:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid agent name. Must be one of: {', '.join(valid_agents)}"
+            )
+        
+        result = await agent_manager.trigger_agent(agent_name)
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"❌ Failed to trigger agent: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,12 +1,12 @@
 "use client";
 
-import { useWebSocket } from "@/hooks/use-websocket";
+import { useWebSocketContext } from "@/components/providers";
 import { useUIStore } from "@/store/ui-store";
 import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
-  const { isConnected } = useWebSocket();
+  const { isConnected } = useWebSocketContext();
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
 
   return (

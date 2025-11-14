@@ -16,13 +16,7 @@ from utils.neon_client import neon_client
 from graph.workflow import compliance_workflow
 from api.routes import router as api_router
 from api.websocket import router as ws_router, listen_for_redis_events
-from agents import (
-    RegulatoryWatchAgent,
-    PolicyAutomationAgent,
-    AuditPrepAgent,
-    TransactionMonitorAgent,
-    AdvisoryAgent
-)
+from agents.agent_manager import agent_manager
 
 # Configure logging
 logging.basicConfig(
@@ -30,13 +24,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# Agent instances
-regulatory_agent = RegulatoryWatchAgent()
-policy_agent = PolicyAutomationAgent()
-audit_agent = AuditPrepAgent()
-transaction_agent = TransactionMonitorAgent()
-advisory_agent = AdvisoryAgent()
 
 
 @asynccontextmanager
@@ -77,16 +64,9 @@ async def lifespan(app: FastAPI):
         # Step 4: Initialize LangGraph workflow
         logger.info("✅ LangGraph compliance workflow initialized")
         
-        # Step 5: Start agents
-        logger.info("🤖 Starting agents...")
-        
-        # Start background agent tasks
-        asyncio.create_task(regulatory_agent.start())
-        asyncio.create_task(policy_agent.start())
-        asyncio.create_task(audit_agent.start())
-        asyncio.create_task(transaction_agent.start())
-        
-        # Note: AdvisoryAgent is on-demand via /api/chat endpoint
+        # Step 5: Start Agent Manager (manages all 5 agents)
+        logger.info("🤖 Starting Anaya Agent Manager...")
+        await agent_manager.start()
         
         # Start WebSocket event listener
         asyncio.create_task(listen_for_redis_events())
@@ -101,8 +81,7 @@ async def lifespan(app: FastAPI):
         # Shutdown
         logger.info("🛑 Shutting down Anaya Watchtower...")
         
-        await regulatory_agent.stop()
-        await transaction_agent.stop()
+        await agent_manager.stop()
         await redis_client.disconnect()
         
         # Close database only if using SQLAlchemy connection
